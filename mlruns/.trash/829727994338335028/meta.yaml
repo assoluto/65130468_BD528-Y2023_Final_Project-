@@ -1,0 +1,7 @@
+artifact_location: mlflow-artifacts:/829727994338335028
+creation_time: 1706715949902
+experiment_id: '829727994338335028'
+last_update_time: 1706715961897
+lifecycle_stage: deleted
+name: LSTM_sales_prediction
+tags: {}
