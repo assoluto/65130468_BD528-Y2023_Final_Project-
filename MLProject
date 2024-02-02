@@ -1,0 +1,82 @@
+name: LSTM_Sales_Prediction
+
+conda_env: conda.yml
+artifacts:
+  - name: model
+    path: ./model.h5
+entry_points:
+  main:
+    command: "python train.py"
+
+parameters:
+  - n_trials:
+    type: int
+    default: 3
+  - name: data_dir
+    type: string
+    default: ./Users/mamon/Documents/GitHub/65130468_BD528-Y2023_Final_Project-/data/
+  - name: number_of_layers
+    type: int
+    default: 4
+  - num_units_lstm1:
+    type: int
+    default: 500
+    search_type: choice
+    search_parameters:
+      - 500
+      - 550
+      - 600
+  - num_units_lstm2:
+    type: int
+    default: 700
+  - num_units_lstm3:
+    type: int
+    default: 900
+  - num_units_lstm4:
+    type: int
+    default: 1100
+  - return_sequences:
+    type: boolean
+    default: True
+  - dropout_rate1:
+    type: float
+    default: 0.2
+  - dropout_rate2:
+    type: float
+    default: 0.3
+  - dropout_rate3:
+    type: float
+    default: 0.4
+  - dropout_rate4:
+    type: float
+    default: 0.5
+  - name: learning_rate
+    type: float
+    default: 0.001
+  - name: batch_size
+    type: int
+    default: 16
+  - name: epochs
+    type: int
+    default: 200
+  - name: optimizer
+    type: string
+    choices: ["adam"]
+    default: adam
+  - name: activation
+    type: string
+    default: relu
+  - name: loss_function
+    type: string
+    choices: ["mse", "mae"]
+    default: mse
+  - name: embedding_size
+    type: int
+    default: 32
+
+
+metrics:
+  - name: mse
+    metric: mean_squared_error
+  - name: mae
+    metric: mean_absolute_error
