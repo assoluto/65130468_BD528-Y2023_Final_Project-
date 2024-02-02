@@ -36,14 +36,15 @@ st.write(sales_data.describe())
 sales_df = sales_data.groupby(["year", "month", "day","day_of_week"],as_index=False)["Sales"].sum()
 ma14 = sales_df.Sales.rolling(14).mean()
 ma7 = sales_df.Sales.rolling(7).mean()
-st.subheader('Sales vs Time chart')
+st.subheader('Original Sales chart')
 #st.line_chart(sales_df,x=[index],y=['Sales'])
-fig = plt.figure(figsize=(20,12))
+fig = plt.figure(figsize=(20,8))
 #plt.style.use('ggplot')
-plt.plot(sales_df.Sales,'gray',label='Sales')
-plt.plot(ma14,'blue',label='14 days moving avg')
-plt.plot(ma7,'green',label='7 days moving avg')
-plt.legend()
+plt.plot(sales_df.Sales,'b',label='Sales')
+plt.plot(ma14,'g',label="ma14 days")
+plt.plot(ma7,'r',label='ma7 days')
+plt.legend(fontsize=15,loc='upper left')
+plt.title('Plot Actual vs Moving average 14 days vs Moving average 7 days',fontsize=15,loc='center')
 st.pyplot(fig)
 
 #splitting Data into training and testing
@@ -90,12 +91,60 @@ y_prediction = y_prediction*scale_factor
 y_test = y_test*scale_factor
 
 #final chart
-st.subheader('Predicted vs Original Sales')
+st.subheader('Original Sales vs Prediction')
 #plt.style.use('ggplot')
-fig2 = plt.figure(figsize=(20,12))
-plt.plot(y_test,'gray',label = 'Original Sales')
-plt.plot(y_prediction,'red',label = 'Predicted Sales')
+fig2 = plt.figure(figsize=(20,8))
+#plt.style.use('ggplot')
+#plt.plot(sales_df.Sales,'gray',label='Sales')
+plt.plot(y_test,'b',label = 'Original Sales')
+plt.plot(y_prediction,'r',label = 'Predicted Sales')
 plt.xlabel('Time')
 plt.ylabel('Sales')
-plt.legend()
+plt.legend(fontsize=15,loc='upper left')
+plt.title('Plot Original Sales vs Predicted Sales',fontsize=15,loc='center')
 st.pyplot(fig2)
+
+period_predict = st.slider('How many days ahead do you want to forecast?', 1, 365, 30)
+st.write("Predict next ", period_predict, 'days')
+start_idx = input_data.shape[0] - period_predict
+x_test2 = []
+y_test2 = []
+
+for i in range(long, input_data.shape[0]):
+    x_test2.append(input_data[i-long:i])
+    y_test2.append(input_data[i,0])
+x_test2, y_test2 = np.array(x_test2), np.array(y_test2)
+# Make predictions with our LSTM model
+model_preds = model.predict(x_test2)
+future_preds = model_preds[-period_predict:]
+y_test2 = y_test2*scale_factor
+model_preds = model_preds*scale_factor
+future_preds = future_preds*scale_factor
+final_forecast = np.append(model_preds,future_preds)
+
+st.subheader('Original Sales vs Future Prediction')
+#plt.style.use('ggplot')
+fig3 = plt.figure(figsize=(20,8))
+#plt.style.use('ggplot')
+plt.plot(y_test2,'blue',label = 'Original Sales')
+# Combine y_test2 and future_preds for a continuous plot
+combined_data = model_preds.tolist() + future_preds.tolist()
+# Generate correct x-axis values for continuous plotting
+x_values = range(len(combined_data))
+# Plot the combined data in blue
+plt.plot(x_values[:len(y_test2)],combined_data[:len(y_test2)], color='red', label='Predicted Sales')
+# Plot final_forecast in red
+plt.plot(x_values[len(y_test2):],combined_data[len(y_test2):], color='black', label='Future Predictions')
+# Indicate the start of future_preds with a vertical line
+plt.axvline(x=len(y_test2), color='green', linestyle='dotted', label='Future Predictions Start')
+plt.xlabel('Time')
+plt.ylabel('Sales')
+plt.legend(fontsize=15,loc='upper center')
+plt.title('Plot Original Sales vs Predicted Sales vs Future Predictions',fontsize=15,loc='center')
+st.pyplot(fig3)
+
+future_preds_data = pd.DataFrame(future_preds)
+future_preds_data.index += 1
+future_preds_data = future_preds_data.set_axis(['Predicted Sales'], axis=1)
+st.subheader('Future Predicted Sales')
+st.write(future_preds_data)
